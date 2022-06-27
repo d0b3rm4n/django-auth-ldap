@@ -462,8 +462,8 @@ class _LDAPUser:
     @property
     def connection(self):
         if not self._connection_bound:
-            if self.settings.BIND_AS_AUTHENTICATING_USER and self.settings.BIND_DN_TEMPLATE:
-                bind_dn = self.settings.BIND_DN_TEMPLATE % {"user": self._username}
+            if self.settings.BIND_AS_AUTHENTICATING_USER and self.settings.USER_DN_TEMPLATE:
+                bind_dn = self.settings.USER_DN_TEMPLATE % {"user": self._username}
                 logger.debug("Bind DN: %s", bind_dn)
                 self._bind_as(bind_dn, self.password, sticky=True)
             else:
@@ -524,7 +524,10 @@ class _LDAPUser:
                 self._user_dn = self._search_for_user_dn()
 
     def _using_simple_bind_mode(self):
-        return self.settings.USER_DN_TEMPLATE is not None
+        if not self.settings.BIND_AS_AUTHENTICATING_USER:
+            return self.settings.USER_DN_TEMPLATE is not None
+        else:
+            return False
 
     def _construct_simple_user_dn(self):
         template = self.settings.USER_DN_TEMPLATE
